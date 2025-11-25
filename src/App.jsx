@@ -1250,19 +1250,19 @@ export default function App() {
         
         .tool-btn {
           flex: 1;
-          min-width: 100px;
+          min-width: 60px;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 6px;
-          padding: 10px 12px;
+          gap: 4px;
+          padding: 8px 6px;
           border: none;
           background: var(--card-bg);
           border-radius: 10px;
           cursor: pointer;
           box-shadow: 0 2px 6px var(--shadow);
           transition: all 0.25s ease;
-          font-size: 0.85em;
+          font-size: 0.75em;
           font-weight: 600;
           color: var(--text-primary);
         }
