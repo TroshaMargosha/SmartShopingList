@@ -58,6 +58,12 @@ export default function App() {
     const savedTheme = localStorage.getItem('theme');
     return (savedTheme && ['light', 'dark'].includes(savedTheme)) ? savedTheme : 'light';
   });
+
+  // Initialize price mode from localStorage or default to 'price' (true = with prices, false = eco mode)
+  const [priceMode, setPriceMode] = useState(() => {
+    const savedMode = localStorage.getItem('priceMode');
+    return savedMode === 'false' ? false : true;
+  });
   
   const [items, setItems] = useState(() => {
     const saved = localStorage.getItem('shoppingList');
@@ -105,8 +111,17 @@ export default function App() {
     document.body.setAttribute('data-theme', theme);
   }, [theme]);
 
+  // Сохранение режима цен
+  useEffect(() => {
+    localStorage.setItem('priceMode', priceMode.toString());
+  }, [priceMode]);
+
   const toggleTheme = () => {
     setTheme(theme === 'light' ? 'dark' : 'light');
+  };
+
+  const togglePriceMode = () => {
+    setPriceMode(!priceMode);
   };
 
   // Сохранение списка
@@ -180,6 +195,17 @@ export default function App() {
   const toggleBought = (id) => {
     const item = items.find(i => i.id === id);
     if (!item) return;
+
+    // In eco mode (no prices), just toggle bought status
+    if (!priceMode) {
+      setItems(items.map(i => {
+        if (i.id === id) {
+          return { ...i, bought: !i.bought };
+        }
+        return i;
+      }));
+      return;
+    }
 
     // If trying to mark as bought but no price, ask for price first
     if (!item.bought && !item.price) {
@@ -389,6 +415,19 @@ export default function App() {
                   </svg>
                 )}
               </button>
+              <button className={`lang-btn ${priceMode ? 'active' : ''}`} onClick={togglePriceMode} title={priceMode ? 'Price mode' : 'No prices mode'}>
+                {priceMode ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+                    <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+                  </svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="12" y1="1" x2="12" y2="23"/>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                  </svg>
+                )}
+              </button>
               <button className={`lang-btn ${lang === 'ru' ? 'active' : ''}`} onClick={() => setLang('ru')} title="Русский">
                 RU
               </button>
@@ -482,7 +521,7 @@ export default function App() {
               <div key={item.id} className={`item ${item.bought ? 'bought' : ''}`}>
                 <div className="item-main">
                   <span className="name" onClick={() => !item.bought && toggleBought(item.id)}>{item.name}</span>
-                  {item.price && (
+                  {priceMode && item.price && (
                     <span 
                       className="price" 
                       onClick={(e) => {
@@ -525,9 +564,11 @@ export default function App() {
               </div>
             ))}
 
-            <div className="total-bar">
-              <strong>{t.total}: {total.toFixed(2)} €</strong>
-            </div>
+            {priceMode && (
+              <div className="total-bar">
+                <strong>{t.total}: {total.toFixed(2)} €</strong>
+              </div>
+            )}
 
             {allBought && (
               <button className="new-list-btn" onClick={startNewList}>{t.newList}</button>
