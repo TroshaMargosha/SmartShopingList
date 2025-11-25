@@ -9,7 +9,7 @@ const translations = {
     delete: 'Удалить', 
     change: 'Изменить', 
     addPrice: 'Цена', 
-    history: 'История цен',
+    history: 'Трекер цен',
     spending: 'График трат',
     noHistory: 'История пуста',
     noSpending: 'Нет данных о тратах',
@@ -23,7 +23,7 @@ const translations = {
     delete: 'Poista', 
     change: 'Muuta', 
     addPrice: 'Hinta', 
-    history: 'Hintahistoria',
+    history: 'Hintaseuranta',
     spending: 'Kulutusgraafi',
     noHistory: 'Historia tyhjä',
     noSpending: 'Ei kulutustietoja',
@@ -37,7 +37,7 @@ const translations = {
     delete: 'Delete', 
     change: 'Change', 
     addPrice: 'Price', 
-    history: 'Price History',
+    history: 'Price Tracker',
     spending: 'Spending Chart',
     noHistory: 'Empty history',
     noSpending: 'No spending data',
@@ -96,9 +96,13 @@ export default function App() {
   const [showCalc, setShowCalc] = useState(false);
   const [calcExpression, setCalcExpression] = useState('');
   const [deleteConfirmModal, setDeleteConfirmModal] = useState({ item: null, isOpen: false });
+  const [showSettings, setShowSettings] = useState(false);
+  const [showDeleteTab, setShowDeleteTab] = useState(false);
 
   const inputRef = useRef(null);
   const t = translations[lang];
+
+
 
   // Сохранение языка
   useEffect(() => {
@@ -218,7 +222,7 @@ export default function App() {
       if (i.id === id) {
         const updated = { ...i, bought: !i.bought };
         if (updated.bought && updated.price) {
-          saveToHistory(updated.name, updated.price, updated.dateAdded, updated.lang);
+          saveToHistory(updated.name, updated.price, updated.dateAdded, i.lang || lang);
         }
         return updated;
       }
@@ -234,7 +238,7 @@ export default function App() {
     setItems(items.map(i => {
       if (i.id === quickPriceModal.item.id) {
         const updated = { ...i, price, bought: true };
-        saveToHistory(updated.name, price, updated.dateAdded, updated.lang);
+        saveToHistory(updated.name, price, updated.dateAdded, i.lang || lang);
         return updated;
       }
       return i;
@@ -325,15 +329,21 @@ export default function App() {
       .sort((a, b) => a.date.localeCompare(b.date));
   };
 
-  const total = items
+  const currentLangItems = items.filter(i => i.lang === lang);
+
+  const subtotal = currentLangItems
+    .filter(i => i.price)
+    .reduce((sum, i) => sum + i.price * i.quantity, 0);
+
+  const total = currentLangItems
     .filter(i => i.bought && i.price)
     .reduce((sum, i) => sum + i.price * i.quantity, 0);
 
-  const allBought = items.length > 0 && items.every(i => i.bought);
+  const allBought = currentLangItems.length > 0 && currentLangItems.every(i => i.bought);
 
   const startNewList = () => {
-    items.forEach(i => i.bought && i.price && saveToHistory(i.name, i.price, i.dateAdded, i.lang));
-    setItems([]);
+    currentLangItems.forEach(i => i.bought && i.price && saveToHistory(i.name, i.price, i.dateAdded, i.lang || lang));
+    setItems(items.filter(i => i.lang !== lang));
   };
 
   const openPriceModal = (item) => {
@@ -389,6 +399,31 @@ export default function App() {
     setCalcExpression('');
   };
 
+  const getLocalStorageSize = () => {
+    let total = 0;
+    for (let key in localStorage) {
+      if (localStorage.hasOwnProperty(key)) {
+        total += localStorage[key].length + key.length;
+      }
+    }
+    return total;
+  };
+
+  const formatBytes = (bytes) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  };
+
+  const getStorageInfo = () => {
+    const used = getLocalStorageSize();
+    const limit = 5 * 1024 * 1024; // 5MB typical limit
+    const percentage = Math.round((used / limit) * 100);
+    return { used, limit, percentage };
+  };
+
   return (
     <>
       <div className="app">
@@ -415,7 +450,7 @@ export default function App() {
                   </svg>
                 )}
               </button>
-              <button className={`lang-btn ${priceMode ? 'active' : ''}`} onClick={togglePriceMode} title={priceMode ? 'Price mode' : 'No prices mode'}>
+              <button className="lang-btn price-mode-btn" onClick={togglePriceMode} title={priceMode ? 'Price mode' : 'No prices mode'}>
                 {priceMode ? (
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
@@ -427,6 +462,11 @@ export default function App() {
                     <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                   </svg>
                 )}
+              </button>
+              <button className="lang-btn price-mode-btn" onClick={() => setShowSettings(true)} title={lang === 'ru' ? 'Настройки' : lang === 'fi' ? 'Asetukset' : 'Settings'}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                </svg>
               </button>
               <button className={`lang-btn ${lang === 'ru' ? 'active' : ''}`} onClick={() => setLang('ru')} title="Русский">
                 RU
@@ -440,26 +480,38 @@ export default function App() {
             </div>
             <div className="toolbar">
               <button className="tool-btn calc-btn" onClick={() => setShowCalc(true)} title={t.calc}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="4" y="2" width="16" height="20" rx="2"/>
-                  <line x1="8" y1="6" x2="16" y2="6"/>
-                  <line x1="8" y1="10" x2="16" y2="10"/>
-                  <line x1="8" y1="14" x2="16" y2="14"/>
-                  <line x1="8" y1="18" x2="16" y2="18"/>
+                  <rect x="8" y="6" width="8" height="3" rx="1"/>
+                  <circle cx="8" cy="13" r="0.5" fill="currentColor"/>
+                  <circle cx="12" cy="13" r="0.5" fill="currentColor"/>
+                  <circle cx="16" cy="13" r="0.5" fill="currentColor"/>
+                  <circle cx="8" cy="16" r="0.5" fill="currentColor"/>
+                  <circle cx="12" cy="16" r="0.5" fill="currentColor"/>
+                  <circle cx="16" cy="16" r="0.5" fill="currentColor"/>
+                  <circle cx="8" cy="19" r="0.5" fill="currentColor"/>
+                  <circle cx="12" cy="19" r="0.5" fill="currentColor"/>
+                  <circle cx="16" cy="19" r="0.5" fill="currentColor"/>
                 </svg>
                 <span>{lang === 'ru' ? 'Калькулятор' : lang === 'fi' ? 'Laskin' : 'Calculator'}</span>
               </button>
               <button className="tool-btn history-btn" onClick={() => setShowHistory(true)} title={t.history}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="12" y1="20" x2="12" y2="10"/>
-                  <line x1="18" y1="20" x2="18" y2="4"/>
-                  <line x1="6" y1="20" x2="6" y2="16"/>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 2v20l2-1.5 2 1.5 2-1.5 2 1.5 2-1.5 2 1.5V2l-2 1.5-2-1.5-2 1.5-2-1.5-2 1.5L6 2z"/>
+                  <path d="M9 7h6"/>
+                  <path d="M9 11h6"/>
+                  <path d="M9 15h4"/>
                 </svg>
-                <span>{lang === 'ru' ? 'История' : lang === 'fi' ? 'Historia' : 'History'}</span>
+                <span>{lang === 'ru' ? 'Трекер' : lang === 'fi' ? 'Seuranta' : 'Tracker'}</span>
               </button>
               <button className="tool-btn spending-btn" onClick={() => setShowSpendingChart(true)} title={t.spending}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 3v18h18"/>
+                  <path d="M7 16l4-6 3 3 5-8"/>
+                  <circle cx="7" cy="16" r="1.5" fill="currentColor"/>
+                  <circle cx="11" cy="10" r="1.5" fill="currentColor"/>
+                  <circle cx="14" cy="13" r="1.5" fill="currentColor"/>
+                  <circle cx="19" cy="5" r="1.5" fill="currentColor"/>
                 </svg>
                 <span>{lang === 'ru' ? 'Траты' : lang === 'fi' ? 'Kulut' : 'Spending'}</span>
               </button>
@@ -515,9 +567,9 @@ export default function App() {
           </div>
         </div>
 
-        {items.length > 0 && (
+        {items.filter(item => item.lang === lang).length > 0 && (
           <div className="list">
-            {items.map(item => (
+            {items.filter(item => item.lang === lang).map(item => (
               <div key={item.id} className={`item ${item.bought ? 'bought' : ''}`}>
                 <div className="item-main">
                   <span className="name" onClick={() => !item.bought && toggleBought(item.id)}>{item.name}</span>
@@ -564,7 +616,13 @@ export default function App() {
               </div>
             ))}
 
-            {priceMode && (
+            {priceMode && !allBought && subtotal > 0 && (
+              <div className="subtotal-bar">
+                <span>{lang === 'ru' ? 'Промежуточный итог' : lang === 'fi' ? 'Välisumma' : 'Subtotal'}: {subtotal.toFixed(2)} €</span>
+              </div>
+            )}
+
+            {priceMode && allBought && (
               <div className="total-bar">
                 <strong>{t.total}: {total.toFixed(2)} €</strong>
               </div>
@@ -727,21 +785,6 @@ export default function App() {
                           <div className="hist-name">{h.name}</div>
                           <div className="hist-price">{h.price.toFixed(2)} €</div>
                         </div>
-                        <button 
-                          className="hist-delete" 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            confirmDeleteFromHistory(h.name);
-                          }}
-                          title={lang === 'ru' ? 'Удалить' : lang === 'fi' ? 'Poista' : 'Delete'}
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <polyline points="3 6 5 6 21 6"/>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                            <line x1="10" y1="11" x2="10" y2="17"/>
-                            <line x1="14" y1="11" x2="14" y2="17"/>
-                          </svg>
-                        </button>
                       </div>
                     ))}
                   </div>
@@ -752,11 +795,31 @@ export default function App() {
         )}
 
         {selectedChart && (
-          <div className="modal-overlay" onClick={() => setSelectedChart(null)}>
-            <div className="chart-modal" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay" onClick={() => { setSelectedChart(null); setShowDeleteTab(false); }}>
+            <div className="chart-modal price-tracker-modal" onClick={e => e.stopPropagation()}>
+              <button 
+                className="bookmark-tab" 
+                onClick={() => setShowDeleteTab(!showDeleteTab)}
+                title={lang === 'ru' ? 'Удалить' : lang === 'fi' ? 'Poista' : 'Delete'}
+              >
+              </button>
+              <div className={`delete-panel ${showDeleteTab ? 'open' : ''}`}>
+                <button 
+                  className="delete-chart-btn" 
+                  onClick={() => { confirmDeleteFromHistory(selectedChart); setShowDeleteTab(false); }}
+                  title={lang === 'ru' ? 'Удалить из истории' : lang === 'fi' ? 'Poista historiasta' : 'Delete from history'}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    <line x1="10" y1="11" x2="10" y2="17"/>
+                    <line x1="14" y1="11" x2="14" y2="17"/>
+                  </svg>
+                </button>
+              </div>
               <div className="modal-header">
                 <h3>{selectedChart}</h3>
-                <button className="close-btn" onClick={() => setSelectedChart(null)}>
+                <button className="close-btn" onClick={() => { setSelectedChart(null); setShowDeleteTab(false); }}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <line x1="18" y1="6" x2="6" y2="18"/>
                     <line x1="6" y1="6" x2="18" y2="18"/>
@@ -767,9 +830,22 @@ export default function App() {
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={getPriceHistoryChart(selectedChart)}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="date" stroke="#6c757d" />
+                    <XAxis 
+                      dataKey="date" 
+                      stroke="#6c757d"
+                      tickFormatter={(date) => {
+                        const [year, month, day] = date.split('-');
+                        return `${day}.${month}.${year.slice(2)}`;
+                      }}
+                    />
                     <YAxis stroke="#6c757d" />
-                    <Tooltip formatter={(v) => v.toFixed(2) + ' €'} />
+                    <Tooltip 
+                      formatter={(v) => v.toFixed(2) + ' €'}
+                      labelFormatter={(date) => {
+                        const [year, month, day] = date.split('-');
+                        return `${day}.${month}.${year.slice(2)}`;
+                      }}
+                    />
                     <Line type="monotone" dataKey="price" stroke="#2A5F8D" strokeWidth={3} dot={{ r: 5, fill: "#A880A0" }} />
                   </LineChart>
                 </ResponsiveContainer>
@@ -781,7 +857,7 @@ export default function App() {
         {/* График трат */}
         {showSpendingChart && (
           <div className="modal-overlay" onClick={() => setShowSpendingChart(false)}>
-            <div className="chart-modal" onClick={e => e.stopPropagation()}>
+            <div className="chart-modal spending-chart-modal" onClick={e => e.stopPropagation()}>
               <div className="modal-header">
                 <h3>{t.spending}</h3>
                 <button className="close-btn" onClick={() => setShowSpendingChart(false)}>
@@ -805,11 +881,18 @@ export default function App() {
                         height={80}
                         tick={{ fontSize: 12 }}
                         stroke="#6c757d"
+                        tickFormatter={(date) => {
+                          const [year, month, day] = date.split('-');
+                          return `${day}.${month}.${year.slice(2)}`;
+                        }}
                       />
                       <YAxis tick={{ fontSize: 12 }} stroke="#6c757d" />
                       <Tooltip 
                         formatter={(value) => `${value.toFixed(2)} €`}
-                        labelFormatter={(label) => `${t.spentOn} ${label}`}
+                        labelFormatter={(label) => {
+                          const [year, month, day] = label.split('-');
+                          return `${t.spentOn} ${day}.${month}.${year.slice(2)}`;
+                        }}
                       />
                       <Line 
                         type="monotone" 
@@ -817,7 +900,7 @@ export default function App() {
                         stroke="#E19485" 
                         strokeWidth={4} 
                         dot={{ r: 6, fill: "#C1726F" }}
-                        name="€"
+                        name=""
                       />
                     </LineChart>
                   </ResponsiveContainer>
@@ -848,15 +931,16 @@ export default function App() {
                   placeholder="0" 
                 />
                 <div className="calc-grid">
-                  {['C', '/', '*', '-', '7', '8', '9', '+', '4', '5', '6', '=', '1', '2', '3', '0', '.'].map(b =>
+                  {['C', 'C', 'C', '/', '7', '8', '9', '*', '4', '5', '6', '-', '1', '2', '3', '+', '0', '.', '='].map((b, idx) =>
                     <button 
-                      key={b} 
-                      className={`calc-btn-key ${['/', '*', '-', '+', '='].includes(b) ? 'operator' : ''} ${b === 'C' ? 'clear' : ''} ${b === '0' ? 'zero' : ''}`}
+                      key={b + idx} 
+                      className={`calc-btn-key ${['/', '*', '-', '+', '='].includes(b) ? 'operator' : ''} ${b === 'C' ? 'clear' : ''} ${b === '0' ? 'zero' : ''} ${idx === 0 ? 'clear-span' : ''}`}
                       onClick={() => {
                         if (b === '=') evalCalc();
                         else if (b === 'C') clearCalc();
                         else setCalcExpression(c => c + b);
                       }}
+                      style={idx === 1 || idx === 2 ? { display: 'none' } : {}}
                     >
                       {b}
                     </button>
@@ -896,6 +980,64 @@ export default function App() {
                   </button>
                   <button className="confirm-btn delete" onClick={deleteFromHistory}>
                     {lang === 'ru' ? 'Удалить' : lang === 'fi' ? 'Poista' : 'Delete'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Settings Modal */}
+        {showSettings && (
+          <div className="modal-overlay" onClick={() => setShowSettings(false)}>
+            <div className="modal settings-modal" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3>{lang === 'ru' ? 'Настройки' : lang === 'fi' ? 'Asetukset' : 'Settings'}</h3>
+                <button className="close-btn" onClick={() => setShowSettings(false)}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+              <div className="modal-content settings-content">
+                <div className="setting-item storage-info-item">
+                  <div className="setting-label">
+                    <span>{lang === 'ru' ? 'Использование памяти' : lang === 'fi' ? 'Muistin käyttö' : 'Storage Usage'}</span>
+                  </div>
+                  <div className="storage-info">
+                    <div className="storage-bar">
+                      <div className="storage-bar-fill" style={{ width: `${getStorageInfo().percentage}%` }}></div>
+                    </div>
+                    <div className="storage-text">
+                      <span className="storage-used">{formatBytes(getStorageInfo().used)}</span>
+                      <span className="storage-separator">/</span>
+                      <span className="storage-total">{formatBytes(getStorageInfo().limit)}</span>
+                      <span className="storage-percentage">({getStorageInfo().percentage}%)</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="setting-item">
+                  <div className="setting-label">
+                    <span>{lang === 'ru' ? 'Очистить все данные' : lang === 'fi' ? 'Tyhjennä kaikki tiedot' : 'Clear all data'}</span>
+                    <small className="setting-description">
+                      {lang === 'ru' ? 'Удалить все списки покупок и историю' : lang === 'fi' ? 'Poista kaikki ostoslistat ja historia' : 'Delete all shopping lists and history'}
+                    </small>
+                  </div>
+                  <button 
+                    className="clear-data-btn"
+                    onClick={() => {
+                      localStorage.clear();
+                      window.location.reload();
+                    }}
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      <line x1="10" y1="11" x2="10" y2="17"/>
+                      <line x1="14" y1="11" x2="14" y2="17"/>
+                    </svg>
+                    <span>{lang === 'ru' ? 'Очистить данные' : lang === 'fi' ? 'Tyhjennä tiedot' : 'Clear Data'}</span>
                   </button>
                 </div>
               </div>
@@ -982,13 +1124,15 @@ export default function App() {
         }
         
         h1 { 
-          margin: 0 0 16px; 
-          font-size: 1.6em; 
+          margin: 0 0 24px; 
+          padding: 12px 0;
+          font-size: 1.8em; 
           color: var(--text-primary);
-          font-weight: 700;
-          letter-spacing: -0.5px;
+          font-weight: 400;
+          letter-spacing: 0.5px;
           transition: color 0.3s ease;
           text-align: center;
+          font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
         }
         
         .header { 
@@ -1047,7 +1191,12 @@ export default function App() {
           font-weight: 700;
           font-size: 0.75em;
           letter-spacing: 0.5px;
-          color: var(--text-secondary);
+          color: var(--text-primary);
+        }
+        
+        .lang-btn svg {
+          stroke: var(--text-primary);
+          transition: all 0.25s ease;
         }
         
         .lang-btn.active {
@@ -1057,7 +1206,11 @@ export default function App() {
           box-shadow: 0 2px 8px rgba(42, 95, 141, 0.3);
         }
         
-        .lang-btn:hover:not(.active) {
+        .lang-btn.active svg {
+          stroke: white;
+        }
+        
+        .lang-btn:hover:not(.active):not(:has(svg)) {
           background: #E19485;
           color: white;
           border-color: #E19485;
@@ -1065,8 +1218,23 @@ export default function App() {
           box-shadow: 0 4px 12px rgba(225, 148, 133, 0.3);
         }
         
+        .price-mode-btn:hover {
+          background: linear-gradient(135deg, #2A5F8D 0%, #A880A0 100%);
+          border-color: #2A5F8D;
+          transform: rotate(180deg);
+          box-shadow: 0 4px 12px rgba(42, 95, 141, 0.2);
+        }
+        
+        .price-mode-btn:hover svg {
+          stroke: white;
+        }
+        
         .lang-btn:active {
           transform: translateY(0);
+        }
+        
+        .price-mode-btn:active {
+          transform: rotate(180deg) scale(0.95);
         }
         
         .toolbar {
@@ -1212,8 +1380,8 @@ export default function App() {
         
         .input-wrapper input { 
           width: 100%;
-          padding: 14px 16px; 
-          font-size: 1em; 
+          padding: 16px 20px; 
+          font-size: 1.05em; 
           border-radius: 12px; 
           border: 2px solid var(--border-color);
           background: var(--input-bg);
@@ -1234,45 +1402,7 @@ export default function App() {
         }
         
         .add-btn { 
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0;
-          padding: 0;
-          width: 50px;
-          height: 50px;
-          border-radius: 12px; 
-          background: linear-gradient(135deg, #2A5F8D 0%, #A880A0 100%);
-          color: white; 
-          border: none; 
-          cursor: pointer;
-          box-shadow: 0 4px 16px rgba(42, 95, 141, 0.3);
-          transition: all 0.3s ease;
-          flex-shrink: 0;
-        }
-        
-        .add-btn svg {
-          stroke: white;
-          transition: all 0.3s ease;
-          width: 24px;
-          height: 24px;
-        }
-        
-        .add-btn span {
           display: none;
-        }
-        
-        .add-btn:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 8px 24px rgba(42, 95, 141, 0.4);
-        }
-        
-        .add-btn:hover svg {
-          transform: rotate(90deg);
-        }
-        
-        .add-btn:active {
-          transform: translateY(-1px);
         }
         
         @media (min-width: 768px) {
@@ -1286,13 +1416,24 @@ export default function App() {
           }
           
           .add-btn {
-            width: auto;
-            height: auto;
-            padding: 16px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             gap: 10px;
+            padding: 16px 28px;
+            border-radius: 12px; 
+            background: linear-gradient(135deg, #2A5F8D 0%, #A880A0 100%);
+            color: white; 
+            border: none; 
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(42, 95, 141, 0.3);
+            transition: all 0.3s ease;
+            flex-shrink: 0;
           }
           
           .add-btn svg {
+            stroke: white;
+            transition: all 0.3s ease;
             width: 20px;
             height: 20px;
           }
@@ -1301,6 +1442,19 @@ export default function App() {
             display: inline;
             font-size: 1em;
             font-weight: 700;
+          }
+          
+          .add-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(42, 95, 141, 0.4);
+          }
+          
+          .add-btn:hover svg {
+            transform: rotate(90deg);
+          }
+          
+          .add-btn:active {
+            transform: translateY(-1px);
           }
         }
         
@@ -1463,9 +1617,9 @@ export default function App() {
         .qty-btn { 
           width: 24px; 
           height: 24px; 
-          border: none; 
-          background: #A880A0;
-          color: white;
+          border: 2px solid var(--border-color); 
+          background: var(--input-bg);
+          color: var(--text-primary);
           border-radius: 5px; 
           font-size: 1em; 
           cursor: pointer; 
@@ -1478,7 +1632,9 @@ export default function App() {
         }
         
         .qty-btn:hover { 
-          background: #2A5F8D;
+          background: #A880A0;
+          color: white;
+          border-color: #A880A0;
           transform: scale(1.1);
         }
         
@@ -1548,14 +1704,14 @@ export default function App() {
           width: 40px;
           height: 40px;
           border: none;
-          background: linear-gradient(135deg, #E19485 0%, #C1726F 100%);
+          background: #B05857;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
           transition: all 0.25s ease;
-          box-shadow: 0 2px 8px rgba(225, 148, 133, 0.3);
+          box-shadow: 0 2px 8px rgba(176, 88, 87, 0.4);
         }
         
         .undo-btn svg {
@@ -1564,8 +1720,9 @@ export default function App() {
         }
         
         .undo-btn:hover {
+          background: #9A4A49;
           transform: scale(1.1) rotate(-15deg);
-          box-shadow: 0 4px 16px rgba(225, 148, 133, 0.5);
+          box-shadow: 0 4px 16px rgba(176, 88, 87, 0.6);
         }
         
         .undo-btn:active {
@@ -1622,6 +1779,54 @@ export default function App() {
           color: #C1726F;
         }
         
+        .subtotal-bar {
+          text-align: center; 
+          font-size: 1.13em; 
+          margin: 16px 0; 
+          font-weight: normal;
+          color: var(--text-secondary);
+          padding: 12px;
+          background: var(--input-bg);
+          border-radius: 10px;
+          border: 2px solid var(--border-color);
+          transition: all 0.3s ease;
+          font-family: 'Brush Script MT', cursive;
+          font-style: italic;
+        }
+        
+        @media (min-width: 768px) {
+          .subtotal-bar {
+            font-size: 1.13em;
+            margin: 20px 0;
+            padding: 14px;
+          }
+        }
+        
+        @keyframes slideInFromTop {
+          0% {
+            opacity: 0;
+            transform: translateY(-30px) scale(0.95);
+          }
+          60% {
+            transform: translateY(5px) scale(1.02);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+
+        @keyframes fadeInUp {
+          0% {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
         .total-bar { 
           text-align: center; 
           font-size: 1.6em; 
@@ -1629,11 +1834,12 @@ export default function App() {
           font-weight: 700;
           color: var(--text-primary);
           padding: 16px;
-          background: var(--item-bg);
+          background: linear-gradient(135deg, rgba(42, 95, 141, 0.1) 0%, rgba(168, 128, 160, 0.1) 100%);
           border-radius: 12px;
           box-shadow: 0 4px 16px var(--shadow);
-          border: 2px solid var(--border-color);
+          border: 2px solid #2A5F8D;
           transition: all 0.3s ease;
+          animation: slideInFromTop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         
         @media (min-width: 768px) {
@@ -1656,6 +1862,7 @@ export default function App() {
           font-weight: 600;
           box-shadow: 0 4px 16px rgba(225, 148, 133, 0.3);
           transition: all 0.3s ease;
+          animation: fadeInUp 0.5s ease-out 0.4s both;
         }
         
         .new-list-btn:hover {
@@ -1689,11 +1896,15 @@ export default function App() {
           box-shadow: 0 20px 60px var(--shadow);
           animation: modalSlide 0.3s ease;
           max-height: 90vh;
-          overflow: hidden;
+          overflow: visible;
           display: flex;
           flex-direction: column;
           border: 2px solid var(--border-color);
           transition: all 0.3s ease;
+        }
+
+        .chart-modal {
+          overflow: visible;
         }
         
         @media (min-width: 768px) {
@@ -1713,6 +1924,11 @@ export default function App() {
           align-items: center;
           padding: 24px 24px 16px;
           border-bottom: 1px solid var(--border-color);
+          background: rgba(42, 95, 141, 0.05);
+        }
+
+        body[data-theme="dark"] .modal-header {
+          background: transparent;
         }
         
         .modal-header h3 {
@@ -1721,9 +1937,102 @@ export default function App() {
           font-size: 1.4em;
           font-weight: 700;
         }
+
+        .bookmark-tab {
+          position: absolute;
+          top: -40px;
+          right: 80px;
+          width: 76px;
+          height: 50px;
+          background: #B05857;
+          border: 2px solid #E19485;
+          border-bottom: none;
+          border-radius: 8px 8px 0 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          z-index: -1;
+          box-shadow: 0 -2px 8px rgba(176, 88, 87, 0.3);
+          opacity: 0;
+          transform: translateY(20px);
+          animation: bookmarkSlideIn 0.4s ease 0.3s forwards;
+        }
+
+        @keyframes bookmarkSlideIn {
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .bookmark-tab svg {
+          fill: white;
+          transition: all 0.3s ease;
+        }
+
+        .bookmark-tab:hover {
+          top: -45px;
+        }
+
+        .delete-panel {
+          position: absolute;
+          top: -10px;
+          right: 80px;
+          width: 76px;
+          height: 100px;
+          background: #FFF9E6;
+          border: 2px solid #B05857;
+          border-radius: 12px 12px 0 0;
+          padding: 0;
+          padding-bottom: 26px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transform: translateY(0);
+          opacity: 0;
+          pointer-events: none;
+          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+          z-index: -2;
+          box-shadow: 0 -4px 12px rgba(176, 88, 87, 0.3);
+        }
+
+        .delete-panel.open {
+          transform: translateY(-100%);
+          opacity: 1;
+          pointer-events: all;
+        }
+
+        .delete-chart-btn {
+          background: #FFF9E6;
+          border: 2px solid #B05857;
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .delete-chart-btn svg {
+          stroke: #B05857;
+          transition: all 0.2s ease;
+        }
+
+        .delete-chart-btn:hover {
+          background: #B05857;
+          transform: rotate(10deg) scale(1.1);
+        }
+
+        .delete-chart-btn:hover svg {
+          stroke: white;
+        }
         
         .close-btn {
-          background: var(--input-bg);
+          background: rgba(42, 95, 141, 0.1);
           border: none;
           width: 36px;
           height: 36px;
@@ -1928,9 +2237,13 @@ export default function App() {
           grid-column: span 2;
         }
         
+        .calc-btn-key.clear-span {
+          grid-column: span 3;
+        }
+        
         .modal-content {
           padding: 24px;
-          overflow-y: auto;
+          overflow: hidden;
           max-height: calc(90vh - 80px);
           flex: 1;
         }
@@ -1939,8 +2252,52 @@ export default function App() {
           max-height: calc(90vh - 80px);
         }
         
+        /* Recharts Tooltip Styling */
+        .recharts-tooltip-wrapper {
+          outline: none;
+        }
+
+        .recharts-default-tooltip {
+          background: var(--card-bg) !important;
+          border: 2px solid var(--border-color) !important;
+          border-radius: 12px !important;
+          box-shadow: 0 8px 24px var(--shadow) !important;
+          padding: 12px 16px !important;
+        }
+
+        .recharts-tooltip-label {
+          color: var(--text-primary) !important;
+          font-weight: 700 !important;
+          font-size: 0.95em !important;
+          margin-bottom: 8px !important;
+        }
+
+        .recharts-tooltip-item {
+          color: var(--text-secondary) !important;
+          font-size: 0.9em !important;
+          padding: 4px 0 !important;
+        }
+
+        .recharts-tooltip-item-value {
+          color: var(--text-primary) !important;
+          font-weight: 700 !important;
+          margin-left: 8px !important;
+        }
+
         .chart-content {
-          padding: 20px;
+          padding: 0;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          flex: 1;
+        }
+
+        .price-tracker-modal .chart-content > div {
+          transform: scale(0.9) translateX(-20px);
+        }
+
+        .spending-chart-modal .chart-content > div {
+          transform: translateY(40px) translateX(-10px);
         }
         
         .empty-state {
@@ -1963,10 +2320,24 @@ export default function App() {
           border: 2px solid var(--border-color);
           transition: all 0.25s ease;
           overflow: hidden;
+          box-shadow: 0 2px 8px rgba(42, 95, 141, 0.25);
+        }
+        
+        .hist-card::after {
+          content: '›';
+          position: absolute;
+          right: 16px;
+          top: 50%;
+          transform: translateY(-50%);
+          font-size: 1.5em;
+          color: var(--text-secondary);
+          opacity: 0.5;
+          transition: all 0.25s ease;
         }
         
         .hist-card-content {
           padding: 18px;
+          padding-right: 40px;
           text-align: center;
           cursor: pointer;
         }
@@ -2013,6 +2384,12 @@ export default function App() {
           border-color: #2A5F8D;
           transform: translateY(-4px);
           box-shadow: 0 8px 20px rgba(42, 95, 141, 0.25);
+        }
+
+        .hist-card:hover::after {
+          opacity: 1;
+          right: 12px;
+          color: white;
         }
         
         .hist-card:hover .hist-delete {
@@ -2100,6 +2477,135 @@ export default function App() {
         
         .confirm-btn:active {
           transform: translateY(0);
+        }
+
+        .settings-modal {
+          max-width: 450px;
+          width: 90%;
+        }
+
+        .settings-content {
+          padding: 24px;
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+        }
+
+        .setting-item {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .setting-label {
+          font-weight: 600;
+          color: var(--text-primary);
+          font-size: 1.05em;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .setting-description {
+          font-weight: 400;
+          color: var(--text-secondary);
+          font-size: 0.85em;
+        }
+
+        .clear-data-btn {
+          width: 100%;
+          padding: 16px 24px;
+          font-size: 1em;
+          font-weight: 600;
+          border: 2px solid #B05857;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #B05857 0%, #C1726F 100%);
+          color: white;
+          cursor: pointer;
+          transition: all 0.25s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          box-shadow: 0 4px 12px rgba(176, 88, 87, 0.3);
+        }
+
+        .clear-data-btn svg {
+          stroke: white;
+          transition: all 0.25s ease;
+        }
+
+        .clear-data-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(176, 88, 87, 0.5);
+        }
+
+        .clear-data-btn:hover svg {
+          animation: trashShake 0.5s ease;
+        }
+
+        .clear-data-btn:active {
+          transform: translateY(0);
+        }
+
+        @keyframes trashShake {
+          0%, 100% { transform: rotate(0deg); }
+          25% { transform: rotate(-10deg); }
+          75% { transform: rotate(10deg); }
+        }
+
+        .storage-info-item {
+          padding-bottom: 16px;
+          border-bottom: 1px solid var(--border-color);
+        }
+
+        .storage-info {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .storage-bar {
+          width: 100%;
+          height: 8px;
+          background: var(--input-bg);
+          border-radius: 10px;
+          overflow: hidden;
+          border: 1px solid var(--border-color);
+        }
+
+        .storage-bar-fill {
+          height: 100%;
+          background: linear-gradient(135deg, #2A5F8D 0%, #A880A0 100%);
+          transition: width 0.3s ease;
+          border-radius: 10px;
+        }
+
+        .storage-text {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.9em;
+          color: var(--text-secondary);
+        }
+
+        .storage-used {
+          font-weight: 700;
+          color: var(--text-primary);
+        }
+
+        .storage-separator {
+          color: var(--text-secondary);
+        }
+
+        .storage-total {
+          color: var(--text-secondary);
+        }
+
+        .storage-percentage {
+          margin-left: 4px;
+          color: var(--text-secondary);
+          font-size: 0.9em;
         }
       `}</style>
     </>
