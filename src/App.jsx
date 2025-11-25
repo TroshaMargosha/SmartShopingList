@@ -1790,8 +1790,6 @@ export default function App() {
           border-radius: 10px;
           border: 2px solid var(--border-color);
           transition: all 0.3s ease;
-          font-family: 'Brush Script MT', cursive;
-          font-style: italic;
         }
         
         @media (min-width: 768px) {
