@@ -359,33 +359,31 @@ export default function App() {
       <div className="app">
         <div className="app-container">
           <header className="header">
-            <div className="header-top">
-              <h1>{t.title}</h1>
-              <div className="header-controls">
-                <button className="theme-toggle" onClick={toggleTheme} title={theme === 'light' ? 'Dark mode' : 'Light mode'}>
-                  {theme === 'light' ? (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                    </svg>
-                  ) : (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="5"/>
-                      <line x1="12" y1="1" x2="12" y2="3"/>
-                      <line x1="12" y1="21" x2="12" y2="23"/>
-                      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                      <line x1="1" y1="12" x2="3" y2="12"/>
-                      <line x1="21" y1="12" x2="23" y2="12"/>
-                      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-                    </svg>
-                  )}
-                </button>
-                <div className="lang-flags">
-                  <span onClick={() => setLang('ru')} title="Русский" className={lang === 'ru' ? 'active' : ''}>RU</span>
-                  <span onClick={() => setLang('fi')} title="Suomi" className={lang === 'fi' ? 'active' : ''}>FI</span>
-                  <span onClick={() => setLang('en')} title="English" className={lang === 'en' ? 'active' : ''}>EN</span>
-                </div>
+            <h1>{t.title}</h1>
+            <div className="header-controls">
+              <button className="theme-toggle" onClick={toggleTheme} title={theme === 'light' ? 'Dark mode' : 'Light mode'}>
+                {theme === 'light' ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                  </svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="5"/>
+                    <line x1="12" y1="1" x2="12" y2="3"/>
+                    <line x1="12" y1="21" x2="12" y2="23"/>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                    <line x1="1" y1="12" x2="3" y2="12"/>
+                    <line x1="21" y1="12" x2="23" y2="12"/>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                  </svg>
+                )}
+              </button>
+              <div className="lang-flags">
+                <span onClick={() => setLang('ru')} title="Русский" className={lang === 'ru' ? 'active' : ''}>RU</span>
+                <span onClick={() => setLang('fi')} title="Suomi" className={lang === 'fi' ? 'active' : ''}>FI</span>
+                <span onClick={() => setLang('en')} title="English" className={lang === 'en' ? 'active' : ''}>EN</span>
               </div>
             </div>
             <div className="toolbar">
@@ -913,31 +911,25 @@ export default function App() {
         }
         
         h1 { 
-          margin: 0; 
+          margin: 0 0 16px; 
           font-size: 1.6em; 
           color: var(--text-primary);
           font-weight: 700;
           letter-spacing: -0.5px;
           transition: color 0.3s ease;
+          text-align: center;
         }
         
         .header { 
           margin-bottom: 20px;
         }
         
-        .header-top {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 16px;
-          flex-wrap: wrap;
-          gap: 12px;
-        }
-        
         .header-controls {
           display: flex;
           align-items: center;
+          justify-content: center;
           gap: 12px;
+          margin-bottom: 16px;
         }
         
         .theme-toggle {
@@ -1013,13 +1005,14 @@ export default function App() {
         @media (min-width: 768px) {
           h1 {
             font-size: 2.2em;
+            margin-bottom: 20px;
           }
           
           .header {
             margin-bottom: 28px;
           }
           
-          .header-top {
+          .header-controls {
             margin-bottom: 20px;
           }
           
