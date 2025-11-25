@@ -848,7 +848,20 @@ export default function App() {
       </div>
 
       <style jsx>{`
-        * { box-sizing: border-box; }
+        * { 
+          box-sizing: border-box;
+          user-select: none;
+          -webkit-user-select: none;
+          -moz-user-select: none;
+          -ms-user-select: none;
+        }
+        
+        input, textarea {
+          user-select: text;
+          -webkit-user-select: text;
+          -moz-user-select: text;
+          -ms-user-select: text;
+        }
         
         body {
           margin: 0;
