@@ -359,8 +359,8 @@ export default function App() {
       <div className="app">
         <div className="app-container">
           <header className="header">
-            <div className="header-row">
-              <h1>{t.title}</h1>
+            <h1>{t.title}</h1>
+            <div className="header-controls">
               <button className="theme-toggle" onClick={toggleTheme} title={theme === 'light' ? 'Dark mode' : 'Light mode'}>
                 {theme === 'light' ? (
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -380,11 +380,11 @@ export default function App() {
                   </svg>
                 )}
               </button>
-            </div>
-            <div className="lang-flags">
-              <span onClick={() => setLang('ru')} title="Русский" className={lang === 'ru' ? 'active' : ''}>RU</span>
-              <span onClick={() => setLang('fi')} title="Suomi" className={lang === 'fi' ? 'active' : ''}>FI</span>
-              <span onClick={() => setLang('en')} title="English" className={lang === 'en' ? 'active' : ''}>EN</span>
+              <div className="lang-flags">
+                <span onClick={() => setLang('ru')} title="Русский" className={lang === 'ru' ? 'active' : ''}>RU</span>
+                <span onClick={() => setLang('fi')} title="Suomi" className={lang === 'fi' ? 'active' : ''}>FI</span>
+                <span onClick={() => setLang('en')} title="English" className={lang === 'en' ? 'active' : ''}>EN</span>
+              </div>
             </div>
             <div className="toolbar">
               <button className="tool-btn calc-btn" onClick={() => setShowCalc(true)} title={t.calc}>
@@ -911,26 +911,25 @@ export default function App() {
         }
         
         h1 { 
-          margin: 0; 
-          font-size: 1.5em; 
+          margin: 0 0 16px; 
+          font-size: 1.6em; 
           color: var(--text-primary);
           font-weight: 700;
           letter-spacing: -0.5px;
           transition: color 0.3s ease;
           text-align: center;
-          flex: 1;
         }
         
         .header { 
           margin-bottom: 20px;
         }
         
-        .header-row {
+        .header-controls {
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 12px;
-          margin-bottom: 12px;
+          margin-bottom: 16px;
         }
         
         .theme-toggle {
@@ -964,25 +963,23 @@ export default function App() {
         
         .lang-flags { 
           display: flex; 
-          gap: 4px; 
+          gap: 6px; 
           background: var(--input-bg);
-          padding: 4px;
+          padding: 6px;
           border-radius: 10px;
           border: 2px solid var(--border-color);
           transition: all 0.3s ease;
-          justify-content: center;
-          margin-bottom: 16px;
         }
         
         .lang-flags span { 
           cursor: pointer; 
           font-weight: 700; 
-          padding: 6px 10px; 
+          padding: 8px 14px; 
           border-radius: 8px; 
           background: transparent;
           color: var(--text-secondary);
           transition: all 0.2s ease;
-          font-size: 0.8em;
+          font-size: 0.85em;
           letter-spacing: 0.5px;
         }
         
@@ -1042,17 +1039,14 @@ export default function App() {
         @media (min-width: 768px) {
           h1 {
             font-size: 2.2em;
+            margin-bottom: 20px;
           }
           
           .header {
             margin-bottom: 28px;
           }
           
-          .header-row {
-            margin-bottom: 16px;
-          }
-          
-          .lang-flags {
+          .header-controls {
             margin-bottom: 20px;
           }
           
@@ -1132,13 +1126,13 @@ export default function App() {
         }
         
         .add-section { 
-          margin-bottom: 28px; 
+          margin-bottom: 24px; 
         }
         
         .input-wrapper { 
           position: relative;
           display: flex;
-          flex-direction: column;
+          flex-direction: row;
           gap: 10px;
         }
         
@@ -1169,24 +1163,29 @@ export default function App() {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 8px;
-          padding: 14px 20px; 
+          gap: 0;
+          padding: 0;
+          width: 50px;
+          height: 50px;
           border-radius: 12px; 
           background: linear-gradient(135deg, #2A5F8D 0%, #A880A0 100%);
           color: white; 
-          font-size: 0.95em;
-          font-weight: 700;
           border: none; 
           cursor: pointer;
           box-shadow: 0 4px 16px rgba(42, 95, 141, 0.3);
           transition: all 0.3s ease;
-          white-space: nowrap;
+          flex-shrink: 0;
         }
         
         .add-btn svg {
           stroke: white;
           transition: all 0.3s ease;
-          flex-shrink: 0;
+          width: 24px;
+          height: 24px;
+        }
+        
+        .add-btn span {
+          display: none;
         }
         
         .add-btn:hover {
@@ -1204,7 +1203,6 @@ export default function App() {
         
         @media (min-width: 768px) {
           .input-wrapper {
-            flex-direction: row;
             gap: 12px;
           }
           
@@ -1214,9 +1212,21 @@ export default function App() {
           }
           
           .add-btn {
+            width: auto;
+            height: auto;
             padding: 16px 28px;
-            font-size: 1em;
             gap: 10px;
+          }
+          
+          .add-btn svg {
+            width: 20px;
+            height: 20px;
+          }
+          
+          .add-btn span {
+            display: inline;
+            font-size: 1em;
+            font-weight: 700;
           }
         }
         
@@ -1269,14 +1279,14 @@ export default function App() {
           display: flex; 
           justify-content: space-between; 
           align-items: center; 
-          padding: 12px 14px; 
+          padding: 10px 12px; 
           margin: 8px 0; 
           background: var(--item-bg);
           border-radius: 12px;
           box-shadow: 0 2px 8px var(--shadow);
           transition: all 0.3s ease;
           animation: slideIn 0.3s ease;
-          gap: 8px;
+          gap: 6px;
           border: 2px solid var(--border-color);
         }
         
@@ -1336,13 +1346,15 @@ export default function App() {
         
         .name { 
           flex: 1;
-          font-size: 1em; 
-          padding-right: 8px;
+          font-size: 0.95em; 
+          padding-right: 4px;
           color: var(--text-primary);
           font-weight: 500;
           transition: color 0.2s ease;
           word-break: break-word;
           min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
         
         @media (min-width: 768px) {
@@ -1367,21 +1379,21 @@ export default function App() {
           display: flex; 
           flex-direction: row;
           align-items: center; 
-          gap: 4px; 
+          gap: 2px; 
           background: var(--input-bg);
-          border-radius: 10px; 
-          padding: 3px;
+          border-radius: 8px; 
+          padding: 2px;
           border: 2px solid var(--border-color);
         }
         
         .qty-btn { 
-          width: 28px; 
-          height: 28px; 
+          width: 24px; 
+          height: 24px; 
           border: none; 
           background: #A880A0;
           color: white;
-          border-radius: 6px; 
-          font-size: 1.1em; 
+          border-radius: 5px; 
+          font-size: 1em; 
           cursor: pointer; 
           display: flex; 
           align-items: center; 
@@ -1401,24 +1413,24 @@ export default function App() {
         }
         
         .qty-display { 
-          min-width: 28px; 
+          min-width: 22px; 
           text-align: center; 
           font-weight: 700; 
-          font-size: 0.95em;
+          font-size: 0.85em;
           color: var(--text-primary);
-          padding: 0 4px;
+          padding: 0 2px;
         }
         
         .price { 
           font-weight: 700; 
           color: #B05857;
-          font-size: 1em; 
-          min-width: 65px; 
+          font-size: 0.9em; 
+          min-width: 50px; 
           text-align: right;
           white-space: nowrap;
           cursor: pointer;
           transition: all 0.2s ease;
-          padding: 4px 8px;
+          padding: 4px 6px;
           border-radius: 6px;
         }
         
@@ -1429,6 +1441,33 @@ export default function App() {
         
         .item.bought .price {
           cursor: default;
+        }
+        
+        @media (min-width: 768px) {
+          .qty-controls {
+            gap: 4px;
+            padding: 3px;
+            border-radius: 10px;
+          }
+          
+          .qty-btn {
+            width: 28px;
+            height: 28px;
+            font-size: 1.1em;
+            border-radius: 6px;
+          }
+          
+          .qty-display {
+            min-width: 28px;
+            font-size: 0.95em;
+            padding: 0 4px;
+          }
+          
+          .price {
+            font-size: 1em;
+            min-width: 65px;
+            padding: 4px 8px;
+          }
         }
         
         .undo-btn {
