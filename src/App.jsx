@@ -380,11 +380,15 @@ export default function App() {
                   </svg>
                 )}
               </button>
-              <div className="lang-flags">
-                <span onClick={() => setLang('ru')} title="Русский" className={lang === 'ru' ? 'active' : ''}>RU</span>
-                <span onClick={() => setLang('fi')} title="Suomi" className={lang === 'fi' ? 'active' : ''}>FI</span>
-                <span onClick={() => setLang('en')} title="English" className={lang === 'en' ? 'active' : ''}>EN</span>
-              </div>
+              <button className={`lang-btn ${lang === 'ru' ? 'active' : ''}`} onClick={() => setLang('ru')} title="Русский">
+                RU
+              </button>
+              <button className={`lang-btn ${lang === 'fi' ? 'active' : ''}`} onClick={() => setLang('fi')} title="Suomi">
+                FI
+              </button>
+              <button className={`lang-btn ${lang === 'en' ? 'active' : ''}`} onClick={() => setLang('en')} title="English">
+                EN
+              </button>
             </div>
             <div className="toolbar">
               <button className="tool-btn calc-btn" onClick={() => setShowCalc(true)} title={t.calc}>
@@ -974,38 +978,41 @@ export default function App() {
           stroke: white;
         }
         
-        .lang-flags { 
-          display: flex; 
-          gap: 6px; 
+        .lang-btn {
+          width: 40px;
+          height: 40px;
+          border: none;
           background: var(--input-bg);
-          padding: 6px;
           border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.25s ease;
           border: 2px solid var(--border-color);
-          transition: all 0.3s ease;
-        }
-        
-        .lang-flags span { 
-          cursor: pointer; 
-          font-weight: 700; 
-          padding: 8px 14px; 
-          border-radius: 8px; 
-          background: transparent;
-          color: var(--text-secondary);
-          transition: all 0.2s ease;
-          font-size: 0.85em;
+          font-weight: 700;
+          font-size: 0.75em;
           letter-spacing: 0.5px;
+          color: var(--text-secondary);
         }
         
-        .lang-flags span.active {
+        .lang-btn.active {
           background: linear-gradient(135deg, #2A5F8D 0%, #A880A0 100%);
           color: white;
+          border-color: #2A5F8D;
           box-shadow: 0 2px 8px rgba(42, 95, 141, 0.3);
         }
         
-        .lang-flags span:hover:not(.active) { 
-          background: #E19485; 
+        .lang-btn:hover:not(.active) {
+          background: #E19485;
           color: white;
-          transform: translateY(-1px);
+          border-color: #E19485;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(225, 148, 133, 0.3);
+        }
+        
+        .lang-btn:active {
+          transform: translateY(0);
         }
         
         .toolbar {
