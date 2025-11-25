@@ -359,8 +359,8 @@ export default function App() {
       <div className="app">
         <div className="app-container">
           <header className="header">
-            <h1>{t.title}</h1>
-            <div className="header-controls">
+            <div className="header-row">
+              <h1>{t.title}</h1>
               <button className="theme-toggle" onClick={toggleTheme} title={theme === 'light' ? 'Dark mode' : 'Light mode'}>
                 {theme === 'light' ? (
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -380,11 +380,11 @@ export default function App() {
                   </svg>
                 )}
               </button>
-              <div className="lang-flags">
-                <span onClick={() => setLang('ru')} title="Русский" className={lang === 'ru' ? 'active' : ''}>RU</span>
-                <span onClick={() => setLang('fi')} title="Suomi" className={lang === 'fi' ? 'active' : ''}>FI</span>
-                <span onClick={() => setLang('en')} title="English" className={lang === 'en' ? 'active' : ''}>EN</span>
-              </div>
+            </div>
+            <div className="lang-flags">
+              <span onClick={() => setLang('ru')} title="Русский" className={lang === 'ru' ? 'active' : ''}>RU</span>
+              <span onClick={() => setLang('fi')} title="Suomi" className={lang === 'fi' ? 'active' : ''}>FI</span>
+              <span onClick={() => setLang('en')} title="English" className={lang === 'en' ? 'active' : ''}>EN</span>
             </div>
             <div className="toolbar">
               <button className="tool-btn calc-btn" onClick={() => setShowCalc(true)} title={t.calc}>
@@ -911,25 +911,26 @@ export default function App() {
         }
         
         h1 { 
-          margin: 0 0 16px; 
-          font-size: 1.6em; 
+          margin: 0; 
+          font-size: 1.5em; 
           color: var(--text-primary);
           font-weight: 700;
           letter-spacing: -0.5px;
           transition: color 0.3s ease;
           text-align: center;
+          flex: 1;
         }
         
         .header { 
           margin-bottom: 20px;
         }
         
-        .header-controls {
+        .header-row {
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 12px;
-          margin-bottom: 16px;
+          margin-bottom: 12px;
         }
         
         .theme-toggle {
@@ -959,6 +960,42 @@ export default function App() {
         
         .theme-toggle:hover svg {
           stroke: white;
+        }
+        
+        .lang-flags { 
+          display: flex; 
+          gap: 4px; 
+          background: var(--input-bg);
+          padding: 4px;
+          border-radius: 10px;
+          border: 2px solid var(--border-color);
+          transition: all 0.3s ease;
+          justify-content: center;
+          margin-bottom: 16px;
+        }
+        
+        .lang-flags span { 
+          cursor: pointer; 
+          font-weight: 700; 
+          padding: 6px 10px; 
+          border-radius: 8px; 
+          background: transparent;
+          color: var(--text-secondary);
+          transition: all 0.2s ease;
+          font-size: 0.8em;
+          letter-spacing: 0.5px;
+        }
+        
+        .lang-flags span.active {
+          background: linear-gradient(135deg, #2A5F8D 0%, #A880A0 100%);
+          color: white;
+          box-shadow: 0 2px 8px rgba(42, 95, 141, 0.3);
+        }
+        
+        .lang-flags span:hover:not(.active) { 
+          background: #E19485; 
+          color: white;
+          transform: translateY(-1px);
         }
         
         .toolbar {
@@ -1005,14 +1042,17 @@ export default function App() {
         @media (min-width: 768px) {
           h1 {
             font-size: 2.2em;
-            margin-bottom: 20px;
           }
           
           .header {
             margin-bottom: 28px;
           }
           
-          .header-controls {
+          .header-row {
+            margin-bottom: 16px;
+          }
+          
+          .lang-flags {
             margin-bottom: 20px;
           }
           
