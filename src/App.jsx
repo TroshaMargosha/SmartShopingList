@@ -148,7 +148,7 @@ export default function App() {
       dateAdded: new Date().toISOString(),
       lang,
     };
-    setItems([...items, newItem]);
+    setItems([newItem, ...items]);
     setInput('');
     setShowSuggestions(false);
     inputRef.current?.focus();
@@ -171,7 +171,7 @@ export default function App() {
       lang,
     };
 
-    setItems([...items, newItem]);
+    setItems([newItem, ...items]);
     setInput('');
     setShowSuggestions(false);
     inputRef.current?.focus();
