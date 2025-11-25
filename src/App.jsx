@@ -1243,7 +1243,7 @@ export default function App() {
           padding: 10px;
           background: var(--input-bg);
           border-radius: 12px;
-          flex-wrap: wrap;
+          flex-wrap: nowrap;
           border: 2px solid var(--border-color);
           transition: all 0.3s ease;
         }
