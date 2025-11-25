@@ -354,6 +354,15 @@ export default function App() {
     } catch { }
   };
 
+  const clearCalc = () => {
+    setCalcExpression('');
+  };
+
+  const closeCalc = () => {
+    setShowCalc(false);
+    setCalcExpression('');
+  };
+
   return (
     <>
       <div className="app">
@@ -779,11 +788,11 @@ export default function App() {
 
         {/* Калькулятор */}
         {showCalc && (
-          <div className="modal-overlay" onClick={() => setShowCalc(false)}>
+          <div className="modal-overlay" onClick={closeCalc}>
             <div className="calc-modal" onClick={e => e.stopPropagation()}>
               <div className="modal-header">
                 <h3>{t.calc}</h3>
-                <button className="close-btn" onClick={() => setShowCalc(false)}>
+                <button className="close-btn" onClick={closeCalc}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <line x1="18" y1="6" x2="6" y2="18"/>
                     <line x1="6" y1="6" x2="18" y2="18"/>
@@ -798,11 +807,15 @@ export default function App() {
                   placeholder="0" 
                 />
                 <div className="calc-grid">
-                  {['7', '8', '9', '/', '4', '5', '6', '*', '1', '2', '3', '-', '0', '.', '=', '+'].map(b =>
+                  {['C', '/', '*', '-', '7', '8', '9', '+', '4', '5', '6', '=', '1', '2', '3', '0', '.'].map(b =>
                     <button 
                       key={b} 
-                      className={`calc-btn-key ${['/', '*', '-', '+', '='].includes(b) ? 'operator' : ''}`}
-                      onClick={() => b === '=' ? evalCalc() : setCalcExpression(c => c + b)}
+                      className={`calc-btn-key ${['/', '*', '-', '+', '='].includes(b) ? 'operator' : ''} ${b === 'C' ? 'clear' : ''} ${b === '0' ? 'zero' : ''}`}
+                      onClick={() => {
+                        if (b === '=') evalCalc();
+                        else if (b === 'C') clearCalc();
+                        else setCalcExpression(c => c + b);
+                      }}
                     >
                       {b}
                     </button>
@@ -1857,6 +1870,21 @@ export default function App() {
         .calc-btn-key.operator:hover {
           background: linear-gradient(135deg, #2A5F8D 0%, #A880A0 100%);
           border-color: #2A5F8D;
+        }
+        
+        .calc-btn-key.clear {
+          background: linear-gradient(135deg, #B05857 0%, #C1726F 100%);
+          color: white;
+          border-color: #B05857;
+        }
+        
+        .calc-btn-key.clear:hover {
+          background: linear-gradient(135deg, #C1726F 0%, #E19485 100%);
+          border-color: #C1726F;
+        }
+        
+        .calc-btn-key.zero {
+          grid-column: span 2;
         }
         
         .modal-content {
